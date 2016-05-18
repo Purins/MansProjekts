@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script>
+        function NewProduct(ProdID) {
+            // var ProdID = $('#ProductID').val();
+            $(document).ready(function () {
+                $.getJSON('/Intervija/api/warehouse/products/new' + '/' + ProdID).done(function (data) {
+                    if (data.message)
+                        console.log(data.message);
+                    else
+                        console.log(data.errors[0].message);
+                })
+            });
+        }
+        function Produce(ProdID,Quant) {
+            //  var ProdID = $('#ProductID').val();
+             var CurrentQuant = GetQuantity(ProdID);
+            //console.log('Current:',CurrentQuant);
+             // var Quant = $('#Quantity').val();
+             if (Quant>CurrentQuant) {
+             Quant -= CurrentQuant;
+             }
+            //console.log('Current2:',CurrentQuant);
+            var product = {productid:ProdID,quantity:Quant};
+            $(document).ready(function () {
+                $.ajax({
+                    type: "POST",
+                    data :JSON.stringify(product),
+                    url: "/Intervija/api/factory/produce",
+                    contentType: "application/json"
+                }).done(function (data){
+                    if (data.message) {
+                        console.log(data.message);
+                        //console.log('Current3:', CurrentQuant);
+                    }
+                    else
+                        console.log(data.errors[0].message);
+                })
+            });
+        }
+        function Order(ProdID,Quant){
+            var product = {productid:ProdID,quantity:Quant};
+            $(document).ready(function () {
+                $.ajax({
+                    type: "POST",
+                    data :JSON.stringify(product),
+                    dataType:"json",
+                    url: "/Intervija/api/warehouse/ship",
+                    contentType: "application/json"
+                }).done(function (data){
+                    if (data.message)
+                        console.log(data.message);
+                    else {
+                        console.log(data.errors[0].message);
+                        switch (data.errors[0].code) {
+                            case 1:
+                                NewProduct(ProdID);
+                                Order(ProdID,Quant);
+                                break;
+                            case 2:
+                                    GetQuantity(ProdID);
+                                Produce(ProdID,Quant);
+                                Order(ProdID,Quant);
+                                break;
+                        }
+                    }
+                })
+            });
+        }
+        function Quantity(ProdID) {
+            // var ProdID = $('#ProductID').val();
+            $(document).ready(function () {
+                $.getJSON('/Intervija/api/warehouse/products' + '/' + ProdID).done(function (data) {
+                    if (data.message)
+                        console.log(data.message);
+                    else
+                        console.log(data.errors[0].message);
+                })
+            });
+        }
+        function GetQuantity(ProdID) {
+            // var ProdID = $('#ProductID').val();
+            $(document).ready(function () {
+                $.getJSON('/Intervija/api/warehouse/products' + '/' + ProdID).done(function (data) {
+                    console.log(data.quantityAvailable);
+                    return data.quantityAvailable;
+                })
+            });
+        }
+    </script>
+</head>
+<body>
+<p>ProductID: <input type="text" id="ProductID" value=""></p>
+<p>Quantity: <input type="text" id="Quantity" value=""></p>
+
+<input type="button" id="btn1" value="Produce" onclick="Produce();" />
+<input type="button" id="btn2" value="New Product" onclick="NewProduct();" />
+<input type="button" id="btn3" value="Order" onclick="Order();" />
+<input type="button" id="btn4" value="Quantity" onclick="Quantity();" />
+<p id="demo"></p>
+</body>
+</html>
