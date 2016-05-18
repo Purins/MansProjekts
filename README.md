@@ -1,5 +1,7 @@
 Lietotāja ceļvedis:
 
+Šobrīd programmu var izmantot tikai caur konsoli.
+
 Pogas:
 Order - pasūta preci;
 Produce - saražo noteiktu preces daudzumu;
